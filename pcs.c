@@ -708,6 +708,54 @@ void BaiduPCS_Download(BaiduPCS *api, const char *remote_file, FILE *local_fp) {
 }
 //}}}
 
+/* Download a single file in range */
+void BaiduPCS_DownloadInRange(BaiduPCS *api, const char *remote_file, FILE *local_fp, uint64_t read_in, uint64_t offset) {
+//{{{
+    if (remote_file == NULL || local_fp == NULL) return;
+
+    HttpClient *client          = api->client;
+    char *url_buffer            = api->util_buffer0;
+    const char *token           = api->token;
+    const char *error           = NULL;
+    char *remote_path_encode    = NULL;
+
+    BaiduPCS_ResetError(api);
+
+    remote_path_encode = curl_easy_escape(client->curl, remote_file, 0);
+    sprintf(url_buffer, "https://d.pcs.baidu.com/rest/2.0/pcs/file?"
+           "access_token=%s"
+           "&method=download"
+           "&path=%s", token, remote_path_encode);
+    curl_free(remote_path_encode);
+    remote_path_encode = NULL;
+
+#ifdef DEBUG
+    fprintf(stderr, "request %s\n", url_buffer);
+#endif
+
+    HttpClient_Init(client);
+    HttpClient_SetFailRetry(client, 0, 0);
+    curl_easy_setopt(client->curl, CURLOPT_WRITEFUNCTION, _BaiduPCS_Download_WriteData);
+    curl_easy_setopt(client->curl, CURLOPT_WRITEDATA, local_fp);
+    /* Follow redirect location */
+    curl_easy_setopt(client->curl, CURLOPT_FOLLOWLOCATION, 1);
+    /* 下载木有超时 */
+    curl_easy_setopt(client->curl, CURLOPT_TIMEOUT, 0);
+
+    const unsigned int CURL_BUFFER_SIZE = 50;
+    char range_buffer[CURL_BUFFER_SIZE];
+    snprintf(range_buffer, CURL_BUFFER_SIZE, "%llu-%llu", (long long unsigned int)offset, (long long unsigned int)(read_in+offset));
+    curl_easy_setopt(client->curl, CURLOPT_RANGE, range_buffer);
+
+    HttpClient_Get(client, url_buffer);
+
+    error = HttpClient_GetError(client);
+    if (error != NULL) {
+        BaiduPCS_ThrowError(api, "http request failed: %s", error);
+    }
+}
+//}}}
+
 /* 移动目录/文件 */
 void BaiduPCS_Move(BaiduPCS *api, const char *remote_from, const char * remote_to) {
 //{{{

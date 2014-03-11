@@ -82,6 +82,8 @@ void BaiduPCS_Info(BaiduPCS *api, BaiduPCSInfo *info);
 PCSFile *BaiduPCS_Upload(BaiduPCS *api, PCSFile *local_file, const char *remote_file, uint64_t split_threshold, const char *ondup); 
 /* 下载单个文件 */
 void BaiduPCS_Download(BaiduPCS *api, const char *remote_file, FILE *local_fp); 
+/* 下载单个文件 in range */
+void BaiduPCS_DownloadInRange(BaiduPCS *api, const char *remote_file, FILE *local_fp, uint64_t read_in, uint64_t offset);
 /* 移动远程文件 */
 void BaiduPCS_Move(BaiduPCS *api, const char *remote_from, const char * remote_to); 
 /* 复制远程文件 */
