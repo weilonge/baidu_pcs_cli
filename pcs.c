@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 emptyhua@gmail.com
+ * Copyright (c) 2014 weilonge@gmail.com
  */
 
 
@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include <libgen.h>
 #include "pcs.h"
+#include <inttypes.h>
 
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
